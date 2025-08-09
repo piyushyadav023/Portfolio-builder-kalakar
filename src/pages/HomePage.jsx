@@ -52,7 +52,7 @@ const HomePage = () => {
                 {/* Laptop Mockup Image */}
                 <div className="mt-12 max-w-5xl mx-auto px-8">
                      <img 
-                        src="https://placehold.co/1200x600/FFFFFF/E0E7FF?text=Portfolio+Showcase" 
+                        src="/public/port.png" 
                         alt="Portfolio example on a laptop" 
                         className="rounded-2xl shadow-2xl ring-1 ring-gray-200"
                     />
@@ -111,7 +111,7 @@ const HomePage = () => {
                 </div>
                 <div className="py-20 bg-gray-50">
                     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <img className="h-24 w-24 rounded-full mx-auto" src="https://placehold.co/100x100/E0E7FF/4338CA?text=PK" alt="Piyush Kumar" />
+                        <img className="h-24 w-24 rounded-full mx-auto" src="https://i.postimg.cc/5N5mqqty/IMG-20250718-192207.jpg" alt="Piyush Kumar" />
                         <blockquote className="mt-8">
                             <p className="text-2xl font-medium text-gray-900">
                                 "This is the best portfolio platform I've ever used. It's simple, beautiful, and has helped me land multiple clients."
