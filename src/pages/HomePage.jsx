@@ -52,7 +52,7 @@ const HomePage = () => {
                 {/* Laptop Mockup Image */}
                 <div className="mt-12 max-w-5xl mx-auto px-8">
                      <img 
-                        src="/public/port.png" 
+                        src="port.png" 
                         alt="Portfolio example on a laptop" 
                         className="rounded-2xl shadow-2xl ring-1 ring-gray-200"
                     />
