@@ -1,11 +1,28 @@
-// --- File: src/pages/SignupPage.js ---
-// User registration ka functional form.
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase/config'; // db ko import karein
+import { auth, db } from '../firebase/config';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore'; // Firestore functions
+import { setDoc, doc } from 'firebase/firestore';
+
+// Reusing the Logo and EyeIcon components from above
+const AuthLogoSignup = () => (
+    <Link to="/" className="flex items-center justify-center space-x-3 mb-6">
+        <img 
+            src="/logo.png" 
+            alt="Kalakar Builder Logo" 
+            className="h-8 w-auto"
+            onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/100x32/FFFFFF/312E81?text=Logo'; }}
+        />
+        <span className="text-2xl font-bold text-white">Kalakar Builder</span>
+    </Link>
+);
+const EyeIconSignup = ({ show }) => (
+    show ? (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+    ) : (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 .847 0 1.67.127 2.456.36m6.444 3.24A10.01 10.01 0 0121.542 12c-1.274 4.057-5.064 7-9.542 7a10.023 10.023 0 01-2.23-.304M3.73 3.73l16.54 16.54" /></svg>
+    )
+);
 
 const SignupPage = () => {
     const [email, setEmail] = useState('');
@@ -13,6 +30,7 @@ const SignupPage = () => {
     const [username, setUsername] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleSignup = async (e) => {
@@ -23,30 +41,27 @@ const SignupPage = () => {
         setLoading(true);
         setError('');
         try {
-            // 1. Create user in Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-
-            // 2. Create a user document in Firestore
-            // Hum user ki portfolio details yahan store karenge
             await setDoc(doc(db, "users", user.uid), {
                 uid: user.uid,
-                username: username.toLowerCase(), // username ko lowercase mein save karein
+                username: username.toLowerCase(),
                 email: email,
                 createdAt: new Date(),
-                isPaid: false, // Shuruaat mein payment status false hoga
-                portfolioData: { // Basic portfolio structure
+                isPaid: false,
+                portfolioData: {
                     name: username,
                     tagline: 'Your Profession',
                     bio: 'A little bit about yourself.',
                     profileImageUrl: null,
-                    socialLinks: {},
+                    socials: {},
+                    editingTools: [],
+                    aiTools: [],
                     projects: []
                 }
             });
-
             setLoading(false);
-            navigate('/dashboard'); // Signup ke baad seedha dashboard par
+            navigate('/dashboard');
         } catch (err) {
             setLoading(false);
             setError(err.message.replace('Firebase: ', ''));
@@ -54,47 +69,64 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+        <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-gray-800 p-10 rounded-xl shadow-lg">
                 <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create your account
+                    <AuthLogoSignup />
+                    <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+                        Create Your Account
                     </h2>
+                    <p className="mt-2 text-center text-sm text-gray-400">
+                        Get started with your free portfolio.
+                    </p>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSignup}>
-                    {error && <p className="text-center bg-red-100 text-red-700 p-3 rounded-md">{error}</p>}
-                    <div className="rounded-md shadow-sm -space-y-px">
-                         <div>
+                    {error && <p className="text-center bg-red-500 bg-opacity-20 text-red-300 p-3 rounded-md text-sm">{error}</p>}
+                    <div className="rounded-md shadow-sm space-y-4">
+                        <div>
+                            <label htmlFor="username" className="text-sm font-medium text-gray-300">Username</label>
                             <input
+                                id="username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 type="text"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Choose a Username (e.g., piyushyadav)"
+                                className="mt-1 appearance-none relative block w-full px-3 py-3 bg-gray-700 border border-gray-600 placeholder-gray-400 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="Choose a unique username"
                             />
                         </div>
                         <div>
+                            <label htmlFor="email-address-signup" className="text-sm font-medium text-gray-300">Email Address</label>
                             <input
+                                id="email-address-signup"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 type="email"
-                                autoComplete="email"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
+                                className="mt-1 appearance-none relative block w-full px-3 py-3 bg-gray-700 border border-gray-600 placeholder-gray-400 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="you@example.com"
                             />
                         </div>
                         <div>
-                            <input
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
-                            />
+                            <label htmlFor="password-signup" className="text-sm font-medium text-gray-300">Password</label>
+                            <div className="relative">
+                                <input
+                                    id="password-signup"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    className="mt-1 appearance-none relative block w-full px-3 py-3 bg-gray-700 border border-gray-600 placeholder-gray-400 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Create a strong password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-white"
+                                >
+                                    <EyeIconSignup show={showPassword} />
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -102,16 +134,16 @@ const SignupPage = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:bg-indigo-400"
                         >
                             {loading ? 'Creating Account...' : 'Sign up'}
                         </button>
                     </div>
                 </form>
                 <div className="text-sm text-center">
-                    <p className="text-gray-600">
+                    <p className="text-gray-400">
                         Already have an account?{' '}
-                        <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                        <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
                             Log in
                         </Link>
                     </p>
