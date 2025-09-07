@@ -78,7 +78,7 @@ const testimonials = [
         <div className="relative">
           <div className="rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
             <img
-              src="/public/hero-section.jpeg"
+              src="/hero-section.jpeg"
               alt="Portfolio Preview"
               className="w-full h-auto"
             />
