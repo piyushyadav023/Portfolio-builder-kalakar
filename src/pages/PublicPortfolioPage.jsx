@@ -1,4 +1,3 @@
-/* --- Redesigned: PublicPortfolioPage.jsx (Fixed with Tools + Social + Verified + Drive Thumbnail) --- */
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../firebase/config.js";
@@ -21,11 +20,11 @@ const VideoModal = ({ videoUrl, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div
-        className="bg-black rounded-xl shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 max-w-4xl overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 max-w-4xl overflow-hidden border-4 border-gray-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative" style={{ paddingBottom: "56.25%", height: 0 }}>
@@ -51,47 +50,77 @@ const VideoModal = ({ videoUrl, onClose }) => {
 
 /* --- Project Card --- */
 const ProjectCard = ({ project, onCardClick }) => {
-  const getThumbnail = () => {
-    if (project.thumbnailUrl) return project.thumbnailUrl;
+  const extractDriveFileId = (url) => {
+    if (!url) return null;
 
-    if (project.videoUrl?.includes("youtube.com/watch?v=")) {
-      const videoId = project.videoUrl.split("v=")[1].split("&")[0];
-      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    // Case 1: /file/d/FILE_ID/view
+    if (url.includes("/file/d/")) {
+      return url.split("/d/")[1]?.split("/")[0];
     }
 
-    if (project.videoUrl?.includes("drive.google.com/file/d/")) {
-      const fileId = project.videoUrl.split("/d/")[1]?.split("/")[0];
-      return `https://drive.google.com/thumbnail?id=${fileId}`;
+    // Case 2: open?id=FILE_ID
+    if (url.includes("open?id=")) {
+      return url.split("open?id=")[1]?.split("&")[0];
     }
 
-    return `https://placehold.co/600x400/1F2937/FFFFFF?text=Video`;
+    // Case 3: uc?id=FILE_ID
+    if (url.includes("uc?id=")) {
+      return url.split("uc?id=")[1]?.split("&")[0];
+    }
+
+    return null;
   };
+
+  const getThumbnail = () => {
+  if (project.thumbnailUrl) return project.thumbnailUrl;
+
+  // ✅ YouTube video thumbnail
+  if (project.videoUrl?.includes("youtube.com/watch?v=")) {
+    const videoId = project.videoUrl.split("v=")[1].split("&")[0];
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+
+  // ✅ Google Drive video thumbnail (WORKING)
+  if (project.videoUrl?.includes("drive.google.com/file/d/")) {
+    const fileId = project.videoUrl.split("/d/")[1]?.split("/")[0];
+    return `https://drive.google.com/thumbnail?id=${fileId}`;
+  }
+
+  // ✅ fallback image
+  return `https://placehold.co/600x400/1F2937/FFFFFF?text=Video`;
+};
+
 
   return (
     <div
       onClick={() => onCardClick(project.videoUrl)}
-      className="relative group rounded-xl overflow-hidden shadow-lg cursor-pointer transform hover:-translate-y-1 transition"
+      className="relative group rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md hover:shadow-xl cursor-pointer bg-white transition transform hover:-translate-y-1"
     >
       <img
         src={getThumbnail()}
         alt={project.title}
-        className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-110"
+        className="w-full h-56 object-cover"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-60 flex items-center justify-center transition">
-        <svg
-          className="w-16 h-16 text-white opacity-90 group-hover:scale-110 transition-transform"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-            clipRule="evenodd"
-          />
-        </svg>
+
+      {/* Play Button Overlay */}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition">
+        <div className="w-14 h-14 flex items-center justify-center bg-pink-500 rounded-full shadow-lg hover:scale-110 transition">
+          <svg
+            className="w-6 h-6 text-white ml-1"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M6.5 5.5a1 1 0 011.555-.832l6 4a1 1 0 010 1.664l-6 4A1 1 0 016.5 13.5v-8z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-3">
-        <h3 className="text-sm font-semibold text-white truncate">
+
+      <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-3 border-t border-gray-200">
+        <h3 className="text-base font-semibold text-gray-800">
           {project.title || "Untitled Project"}
         </h3>
       </div>
@@ -99,13 +128,14 @@ const ProjectCard = ({ project, onCardClick }) => {
   );
 };
 
-/* --- Social Icon Button --- */
+
+/* --- Social Button --- */
 const SocialButton = ({ type, url }) => {
-  const colors = {
-    youtube: "bg-red-600",
-    instagram: "bg-gradient-to-r from-pink-500 to-yellow-500",
-    twitter: "bg-sky-500",
-    linkedin: "bg-blue-700",
+  const styles = {
+    youtube: "bg-red-500",
+    instagram: "bg-gradient-to-r from-pink-500 to-yellow-400",
+    twitter: "bg-sky-400",
+    linkedin: "bg-blue-600",
   };
   const icons = {
     youtube: "▶ YouTube",
@@ -118,7 +148,7 @@ const SocialButton = ({ type, url }) => {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${colors[type]} text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md hover:opacity-90 transition`}
+      className={`${styles[type]} text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow hover:scale-105 transition`}
     >
       {icons[type]}
     </a>
@@ -128,38 +158,27 @@ const SocialButton = ({ type, url }) => {
 /* --- Profile Section --- */
 const ProfileSection = ({ name, bio, profileImageUrl, username, socials, editingTools, aiTools }) => {
   return (
-    <div className="text-center flex flex-col items-center p-6 bg-gradient-to-b from-gray-800/60 to-gray-900 rounded-2xl shadow-xl">
-      <img
-        className="w-28 h-28 rounded-full object-cover border-4 border-indigo-500"
-        src={
-          profileImageUrl ||
-          "https://placehold.co/200x200/374151/4F46E5?text=User"
-        }
-        alt={name || "User"}
-      />
-      <h1 className="text-2xl font-bold text-white mt-4 flex items-center gap-2">
+    <div className="relative text-center flex flex-col items-center p-10 bg-white rounded-3xl shadow-xl border border-gray-200">
+      {/* Profile image as framed portrait */}
+      <div className="relative border-4 border-pink-300 rounded-2xl shadow-lg overflow-hidden w-40 h-40">
+        <img
+          className="w-full h-full object-cover"
+          src={profileImageUrl || "https://placehold.co/200x200/EEE/333?text=User"}
+          alt={name || "User"}
+        />
+      </div>
+
+      {/* Name + underline accent */}
+      <h1 className="text-3xl font-bold text-gray-900 mt-6 relative">
         {name || "Your Name"}
-        <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-          <svg
-            className="w-4 h-4 text-white"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293A1 1 0 105.293 10.707l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Verified
-        </span>
+        <span className="block w-20 h-1 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full mx-auto mt-2"></span>
       </h1>
-      <p className="text-gray-400 text-sm">@{username || "username"}</p>
-      <p className="mt-3 text-gray-300 text-base leading-relaxed max-w-md">
+      <p className="text-gray-500 text-sm mt-1">@{username || "username"}</p>
+      <p className="mt-4 text-gray-700 text-base leading-relaxed max-w-xl">
         {bio || "This is the user bio section."}
       </p>
 
-      {/* --- Socials --- */}
+      {/* Socials */}
       <div className="flex gap-2 mt-6 flex-wrap justify-center">
         {socials?.youtube && <SocialButton type="youtube" url={socials.youtube} />}
         {socials?.instagram && <SocialButton type="instagram" url={socials.instagram} />}
@@ -167,43 +186,47 @@ const ProfileSection = ({ name, bio, profileImageUrl, username, socials, editing
         {socials?.linkedin && <SocialButton type="linkedin" url={socials.linkedin} />}
       </div>
 
-      {/* --- Tools Section --- */}
-      <div className="mt-8 border-t border-gray-700 pt-6 w-full">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-          Editing Tools
-        </h3>
-        <div className="mt-3 flex flex-wrap gap-2 justify-center">
-          {editingTools?.map((tool) => (
-            <span
-              key={tool}
-              className="bg-gray-700 text-gray-300 text-xs font-medium px-2.5 py-1 rounded-full"
-            >
-              {tool}
-            </span>
-          ))}
+      {/* Tools */}
+      {editingTools?.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            Editing Tools
+          </h3>
+          <div className="mt-3 flex flex-wrap gap-2 justify-center">
+            {editingTools.map((tool) => (
+              <span
+                key={tool}
+                className="bg-pink-50 text-gray-700 text-xs font-medium px-3 py-1 rounded-full border border-pink-200"
+              >
+                {tool}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="mt-6 w-full">
-        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-          AI Tools
-        </h3>
-        <div className="mt-3 flex flex-wrap gap-2 justify-center">
-          {aiTools?.map((tool) => (
-            <span
-              key={tool}
-              className="bg-gray-700 text-gray-300 text-xs font-medium px-2.5 py-1 rounded-full"
-            >
-              {tool}
-            </span>
-          ))}
+      {aiTools?.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            AI Tools
+          </h3>
+          <div className="mt-3 flex flex-wrap gap-2 justify-center">
+            {aiTools.map((tool) => (
+              <span
+                key={tool}
+                className="bg-purple-50 text-gray-700 text-xs font-medium px-3 py-1 rounded-full border border-purple-200"
+              >
+                {tool}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-/* --- Main Public Portfolio Page --- */
+/* --- Main Page --- */
 const PublicPortfolioPage = () => {
   const { username } = useParams();
   const [userData, setUserData] = useState(null);
@@ -218,11 +241,7 @@ const PublicPortfolioPage = () => {
       setError(null);
       try {
         const usersRef = collection(db, "users");
-        const q = query(
-          usersRef,
-          where("username", "==", username.toLowerCase()),
-          limit(1)
-        );
+        const q = query(usersRef, where("username", "==", username.toLowerCase()), limit(1));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
@@ -243,20 +262,17 @@ const PublicPortfolioPage = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-900 flex items-center justify-center h-screen">
-        <p className="text-xl text-white animate-pulse">Loading Portfolio...</p>
+      <div className="bg-white flex items-center justify-center h-screen">
+        <p className="text-xl text-gray-600 animate-pulse">Loading Portfolio...</p>
       </div>
     );
   }
   if (error) {
     return (
-      <div className="bg-gray-900 flex flex-col items-center justify-center h-screen text-center px-4">
+      <div className="bg-white flex flex-col items-center justify-center h-screen text-center px-4">
         <h2 className="text-2xl font-bold text-red-500">Oops!</h2>
-        <p className="text-xl text-gray-300 mt-2">{error}</p>
-        <a
-          href="/"
-          className="mt-6 bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-600"
-        >
+        <p className="text-xl text-gray-600 mt-2">{error}</p>
+        <a href="/" className="mt-6 bg-pink-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-pink-600">
           Go to Homepage
         </a>
       </div>
@@ -265,10 +281,10 @@ const PublicPortfolioPage = () => {
   if (!userData) return null;
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-sans relative">
+    <div className="bg-white text-gray-900 min-h-screen font-sans">
       <VideoModal videoUrl={selectedVideo} onClose={() => setSelectedVideo(null)} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-16">
         <ProfileSection
           name={userData.name}
           bio={userData.bio}
@@ -279,20 +295,18 @@ const PublicPortfolioPage = () => {
           aiTools={userData.aiTools}
         />
 
-        <section className="mt-12">
-          <h2 className="text-3xl font-bold text-white text-center">My Work</h2>
+        <section>
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
+            My Work
+          </h2>
           {userData.projects && userData.projects.length > 0 ? (
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
               {userData.projects.map((project, index) => (
-                <ProjectCard
-                  key={index}
-                  project={project}
-                  onCardClick={setSelectedVideo}
-                />
+                <ProjectCard key={index} project={project} onCardClick={setSelectedVideo} />
               ))}
             </div>
           ) : (
-            <div className="mt-8 text-center text-gray-500 bg-gray-800 p-10 rounded-lg">
+            <div className="text-center text-gray-500 bg-gray-50 p-12 rounded-2xl border border-gray-200">
               <p>This user hasn't added any projects yet.</p>
             </div>
           )}

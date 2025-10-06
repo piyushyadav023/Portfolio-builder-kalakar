@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { auth } from "../firebase/config";
 
@@ -11,8 +11,7 @@ const Logo = () => (
       className="h-8 w-auto"
       onError={(e) => {
         e.target.onerror = null;
-        e.target.src =
-          "https://placehold.co/100x32/10B981/FFFFFF?text=Logo";
+        e.target.src = "https://placehold.co/100x32/10B981/FFFFFF?text=Logo";
       }}
     />
     <span className="text-2xl font-bold text-white">Kalakar Builder</span>
@@ -22,11 +21,41 @@ const Logo = () => (
 const Navbar = () => {
   const { currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   const handleLogout = () => {
     auth.signOut();
     setIsOpen(false);
   };
+
+  // ---------- Hide logic for username-style public profiles ----------
+  // Example: hide navbar for routes like "/piyushyadav" (single segment)
+  const rawPath = location?.pathname || "";
+  // remove query/hash, trailing slashes, and trailing colons (in case copy had extra :)
+  const cleanPath = rawPath.replace(/[:?#].*$/, "").replace(/\/+$/, "").replace(/:+$/, "");
+  const parts = cleanPath.split("/").filter(Boolean);
+
+  // Add any app-specific pages here that should NOT be treated as "username" pages
+  const reserved = new Set([
+    "login",
+    "signup",
+    "dashboard",
+    "admin",
+    "about",
+    "contact",
+    "settings",
+    "terms",
+    "privacy",
+    "help",
+    "blog",
+    ""
+  ]);
+
+  // If route is exactly one path segment and not a reserved route -> assume it's a public username page -> hide navbar
+  if (parts.length === 1 && !reserved.has(parts[0].toLowerCase())) {
+    return null;
+  }
+  // -----------------------------------------------------------------
 
   return (
     <nav className="sticky top-0 z-50 bg-black/90 backdrop-blur-md shadow-md">
@@ -91,12 +120,7 @@ const Navbar = () => {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
               {/* Close */}
               <svg
@@ -106,12 +130,7 @@ const Navbar = () => {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
