@@ -173,7 +173,7 @@ const HomePage = () => {
             <div className="p-8 bg-white border-2 border-indigo-500 rounded-2xl shadow-2xl relative">
                     <span className="absolute -top-3 px-3 py-1 bg-indigo-500 text-white rounded-full text-sm font-semibold">Most Popular</span>
                 <h3 className="text-xl font-semibold text-indigo-500">Pro</h3>
-                <p className="mt-4 text-4xl font-bold">₹99<span className="text-lg font-normal text-gray-500">/mo</span></p>
+                <p className="mt-4 text-4xl font-bold">₹199<span className="text-lg font-normal text-gray-500">/mo</span></p>
                 <ul className="mt-6 space-y-3 text-left">
                     <li className="flex items-center gap-2"><CheckCircle size={18} className="text-green-500"/>Unlimited Portfolios</li>
                     <li className="flex items-center gap-2"><CheckCircle size={18} className="text-green-500"/>Premium Templates</li>
@@ -189,14 +189,6 @@ const HomePage = () => {
                     <li className="flex items-center gap-2"><CheckCircle size={18} className="text-green-500"/>Priority Support</li>
                 </ul>
             </div>
-        </div>
-
-        {/* YAHAN PAR NAYA "COMING SOON" TEXT ADD KIYA HAI */}
-        <div className="mt-12 text-center">
-            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 animate-pulse">
-                Coming Soon!
-            </p>
-            <p className="mt-2 text-gray-600">Subscriptions are not yet active. We are launching shortly!</p>
         </div>
 
     </div>
