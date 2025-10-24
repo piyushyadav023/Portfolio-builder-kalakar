@@ -7,7 +7,7 @@ const Logo = () => (
   <Link to="/" className="flex items-center space-x-3">
     <img
       src="/logo.png"
-      alt="Kalakar Builder Logo"
+      alt="Hive Logo"
       className="h-8 w-auto"
       onError={(e) => {
         e.target.onerror = null;
@@ -15,7 +15,7 @@ const Logo = () => (
       }}
     />
     {/* UPDATED: Text color to dark */}
-    <span className="text-2xl font-bold text-gray-900">Kalakar Builder</span>
+    <span className="text-2xl font-bold text-gray-900">Hive</span>
   </Link>
 );
 
